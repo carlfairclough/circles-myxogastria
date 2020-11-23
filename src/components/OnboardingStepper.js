@@ -9,10 +9,10 @@ import Button from '~/components/Button';
 import ButtonBack from '~/components/ButtonBack';
 import Footer from '~/components/Footer';
 import Header from '~/components/Header';
-import Logo from '~/components/Logo';
 import View from '~/components/View';
 import translate from '~/services/locale';
 import { IconBack, IconClose } from '~/styles/icons';
+import { burnWallet } from '~/store/wallet/actions';
 
 const useStyles = makeStyles(() => ({
   onboardingMobileStepper: {
@@ -33,6 +33,7 @@ const OnboardingStepper = ({
   const [current, setCurrent] = useState(0);
   const [isRedirect, setIsRedirect] = useState(false);
   const [isDisabled, setIsDisabled] = useState(false);
+  const [backHidden, setBackHidden] = useState(false);
 
   const onChange = (updatedValues) => {
     onValuesChange({
@@ -43,6 +44,15 @@ const OnboardingStepper = ({
 
   const onDisabledChange = (updatedValue) => {
     setIsDisabled(updatedValue);
+  };
+
+  const hideBack = (hide) => {
+    setBackHidden(hide);
+  };
+
+  const newWallet = (stepIndex) => {
+    burnWallet();
+    setCurrent(stepIndex);
   };
 
   const onNext = () => {
@@ -64,20 +74,20 @@ const OnboardingStepper = ({
   if (isRedirect) {
     return <Redirect push to={exitPath} />;
   }
-
   return (
     <Fragment>
       <Header>
         <MobileStepper
           activeStep={current}
           backButton={
-            current === 0 ? (
+            !backHidden &&
+            (current === 0 ? (
               <ButtonBack />
             ) : (
               <IconButton onClick={onPrevious}>
                 <IconBack />
               </IconButton>
-            )
+            ))
           }
           classes={{
             root: classes.onboardingMobileStepper,
@@ -94,11 +104,10 @@ const OnboardingStepper = ({
       </Header>
       <View>
         <Container maxWidth="sm">
-          <Box my={6}>
-            <Logo />
-          </Box>
-          <Box textAlign="center">
+          <Box pt={5} textAlign="center">
             <OnboardingCurrentStep
+              hideBack={hideBack}
+              newWallet={newWallet}
               values={values}
               onChange={onChange}
               onDisabledChange={onDisabledChange}
@@ -125,6 +134,7 @@ const OnboardingStepper = ({
 
 OnboardingStepper.propTypes = {
   exitPath: PropTypes.string.isRequired,
+  hideBack: PropTypes.bool,
   onFinish: PropTypes.func.isRequired,
   onValuesChange: PropTypes.func.isRequired,
   steps: PropTypes.array.isRequired,
